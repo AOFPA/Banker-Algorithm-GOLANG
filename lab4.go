@@ -114,7 +114,7 @@ func newProcess(p string, max1, max2, max3 int) {
 }
 
 func req(p string, a, b, c int) {
-	if (available[0]-a >= 0) && (available[1]-b >= 0) && (available[2]-c >= 0) {
+	if (available[0]-a > 0) && (available[1]-b > 0) && (available[2]-c > 0) {
 		for i := range process {
 			if process[i] == p {
 				if (a <= need[0+(i*3)]) && (b <= need[1+(i*3)]) && (c <= need[2+(i*3)]) {
@@ -127,6 +127,25 @@ func req(p string, a, b, c int) {
 					fmt.Printf("\n*******************Safe!*******************\n")
 				} else {
 					fmt.Printf("\n*******************Error Number Require!*******************\n")
+				}
+			} else {
+				continue
+			}
+		}
+		update()
+	} else if (available[0]-a == 0) && (available[1]-b == 0) && (available[2]-c == 0) {
+		for i := range process {
+			if process[i] == p {
+				if (available[0]-need[0+(i*3)] == 0) && (available[1]-need[1+(i*3)] == 0) && (available[2]-need[2+(i*3)] == 0) {
+					allocate[0+(i*3)] += a
+					allocate[1+(i*3)] += b
+					allocate[2+(i*3)] += c
+					available[0] -= a
+					available[1] -= b
+					available[2] -= c
+					fmt.Printf("\n*******************Safe!*******************\n")
+				} else {
+					fmt.Printf("\n*******************Not Safe!*******************\n")
 				}
 			} else {
 				continue
