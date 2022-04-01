@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+//สร้างตัวแปร
 var (
 	process   []string
 	allocate  []int
@@ -24,10 +25,13 @@ func defaultx() {
 	max = make([]int, 30)
 	available = make([]int, 3)
 
+	//ให้  available เริ่มต้นที่ A=10 B=10 C=10
 	for i := range available {
 		available[i] = 10
 	}
 }
+
+//แสดงตาราง
 func showTable() {
 	fmt.Printf("\n-----------------------------------------------\n")
 	fmt.Printf(" Process |Allocate|  Need |  Max  | Available ")
@@ -37,6 +41,7 @@ func showTable() {
 		fmt.Printf("    -    | - - -  | - - - | - - - | %d %d %d\n", available[0], available[1], available[2])
 	} else {
 		for i := range process {
+			//ถ้า process ยังไม่ถูกสร้างให้ข้าม
 			if process[i] == "" {
 				continue
 			} else {
@@ -52,6 +57,7 @@ func showTable() {
 	fmt.Printf("\nCommand>")
 }
 
+//รับค่าจาก keyboard
 func getCommand() string {
 	reader := bufio.NewReader(os.Stdin)
 	data, _ := reader.ReadString('\n')
@@ -59,10 +65,14 @@ func getCommand() string {
 	return data
 }
 
+//ลบ Process ที่ได้ทรัพยากรครบตามที่ต้องการแล้ว และคืนค่าทรัพยากรที่ยืมมา
 func terminate(index int) {
+	//คืนค่าทรัพยากรที่ยืมมา
 	available[0] += allocate[0+(index*3)]
 	available[1] += allocate[1+(index*3)]
 	available[2] += allocate[2+(index*3)]
+
+	//ลบ Process ที่ได้ทรัพยากรครบตามที่ต้องการแล้ว
 	for i := range process {
 		if process[i] == "" {
 			break
@@ -84,6 +94,7 @@ func terminate(index int) {
 	}
 }
 
+//อัพเดทค่าในตาราง
 func update() {
 	for i := range process {
 		if process[i] == "" {
@@ -99,6 +110,7 @@ func update() {
 	}
 }
 
+//สร้าง Process ใหม่
 func newProcess(p string, max1, max2, max3 int) {
 	for i := range process {
 		if process[i] == "" {
@@ -113,11 +125,36 @@ func newProcess(p string, max1, max2, max3 int) {
 
 }
 
+//ฟังก์ชันเมื่อมีการร้องขอทรัพยากร
 func req(p string, a, b, c int) {
+	//req p6 3 3 3
 	if (available[0]-a > 0) && (available[1]-b > 0) && (available[2]-c > 0) {
+		test1 := available[0] - a //4-3 = 1
+		test2 := available[1] - b //1
+		test3 := available[2] - c //1
+		safe := false
+		fmt.Printf("\ntest1\t|\ttest2\t|\ttest3\t|\tsafe\n")
+		fmt.Printf("%d\t|\t%d\t|\t%d\t|\t%t\n", test1, test2, test3, safe)
+
+		for i := range process {
+			if process[i] == "" {
+				continue
+			} else if process[i] != p {
+				if (test1 >= need[0+(i*3)]) && (test2 >= need[1+(i*3)]) && (test3 >= need[2+(i*3)]) {
+					safe = true
+					break
+				}
+			} else { //p6 (6-3 = 3)
+				if (test1 >= (need[0+(i*3)] - a)) && (test2 >= (need[1+(i*3)] - b)) && (test3 >= (need[2+(i*3)] - c)) {
+					safe = true
+					break
+				}
+			}
+		}
+
 		for i := range process {
 			if process[i] == p {
-				if (a <= need[0+(i*3)]) && (b <= need[1+(i*3)]) && (c <= need[2+(i*3)]) {
+				if (a <= need[0+(i*3)]) && (b <= need[1+(i*3)]) && (c <= need[2+(i*3)]) && safe == true {
 					allocate[0+(i*3)] += a
 					allocate[1+(i*3)] += b
 					allocate[2+(i*3)] += c
@@ -125,8 +162,10 @@ func req(p string, a, b, c int) {
 					available[1] -= b
 					available[2] -= c
 					fmt.Printf("\n*******************Safe!*******************\n")
+					safe = false
+					// safeStatus = false
 				} else {
-					fmt.Printf("\n*******************Error Number Require!*******************\n")
+					fmt.Printf("\n*******************Not Safe!*******************\n")
 				}
 			} else {
 				continue
@@ -134,9 +173,32 @@ func req(p string, a, b, c int) {
 		}
 		update()
 	} else if (available[0]-a == 0) && (available[1]-b == 0) && (available[2]-c == 0) {
+		test1 := available[0] - a //4-3 = 1
+		test2 := available[1] - b //1
+		test3 := available[2] - c //1
+		safe := false
+		fmt.Printf("\ntest1\t|\ttest2\t|\ttest3\t|\tsafe\n")
+		fmt.Printf("%d\t|\t%d\t|\t%d\t|\t%t\n", test1, test2, test3, safe)
+
+		for i := range process {
+			if process[i] == "" {
+				continue
+			} else if process[i] != p {
+				if (test1 >= need[0+(i*3)]) && (test2 >= need[1+(i*3)]) && (test3 >= need[2+(i*3)]) {
+					safe = true
+					break
+				}
+			} else { //p6 (6-3 = 3)
+				if (test1 >= (need[0+(i*3)] - a)) && (test2 >= (need[1+(i*3)] - b)) && (test3 >= (need[2+(i*3)] - c)) {
+					safe = true
+					break
+				}
+			}
+		}
+
 		for i := range process {
 			if process[i] == p {
-				if (available[0]-need[0+(i*3)] == 0) && (available[1]-need[1+(i*3)] == 0) && (available[2]-need[2+(i*3)] == 0) {
+				if (available[0]-need[0+(i*3)] == 0) && (available[1]-need[1+(i*3)] == 0) && (available[2]-need[2+(i*3)] == 0) && safe == true {
 					allocate[0+(i*3)] += a
 					allocate[1+(i*3)] += b
 					allocate[2+(i*3)] += c
@@ -144,6 +206,8 @@ func req(p string, a, b, c int) {
 					available[1] -= b
 					available[2] -= c
 					fmt.Printf("\n*******************Safe!*******************\n")
+					safe = false
+					// safeStatus = false
 				} else {
 					fmt.Printf("\n*******************Not Safe!*******************\n")
 				}
